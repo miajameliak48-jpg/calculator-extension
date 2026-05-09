@@ -4,14 +4,156 @@
   if (window.__smf_loaded) return;
   window.__smf_loaded = true;
 
-  /* ─── geometry ──────────────────────────────────────────────────────── */
+  /* ─── INSEE 2023 net monthly salary (€) by région code ──────────────── */
 
-  function rect(w, s, e, n) {
-    return [[[w, s], [e, s], [e, n], [w, n], [w, s]]];
-  }
+  var REG_SALARY = {
+    '11': 3497, // Île-de-France
+    '24': 2421, // Centre-Val de Loire
+    '27': 2391, // Bourgogne-Franche-Comté
+    '28': 2434, // Normandie
+    '32': 2440, // Hauts-de-France
+    '44': 2456, // Grand Est
+    '52': 2436, // Pays de la Loire
+    '53': 2390, // Bretagne
+    '75': 2405, // Nouvelle-Aquitaine
+    '76': 2469, // Occitanie
+    '84': 2632, // Auvergne-Rhône-Alpes
+    '93': 2564, // Provence-Alpes-Côte d'Azur
+    '94': 2300  // Corse
+  };
 
-  function circle(lng, lat, r, n) {
-    n = n || 22;
+  /* ─── INSEE 2023 net monthly salary (€) by département code ─────────── */
+
+  var DEP_SALARY = {
+    '01': 2580, // Ain
+    '02': 2290, // Aisne
+    '03': 2280, // Allier
+    '04': 2260, // Alpes-de-Haute-Provence
+    '05': 2350, // Hautes-Alpes
+    '06': 2710, // Alpes-Maritimes (Nice)
+    '07': 2330, // Ardèche
+    '08': 2230, // Ardennes
+    '09': 2220, // Ariège
+    '10': 2360, // Aube
+    '11': 2270, // Aude
+    '12': 2300, // Aveyron
+    '13': 2650, // Bouches-du-Rhône (Marseille)
+    '14': 2470, // Calvados (Caen)
+    '15': 2240, // Cantal
+    '16': 2310, // Charente
+    '17': 2400, // Charente-Maritime
+    '18': 2290, // Cher
+    '19': 2310, // Corrèze
+    '2A': 2270, // Corse-du-Sud
+    '2B': 2320, // Haute-Corse
+    '21': 2510, // Côte-d'Or (Dijon)
+    '22': 2280, // Côtes-d'Armor
+    '23': 2200, // Creuse
+    '24': 2280, // Dordogne
+    '25': 2500, // Doubs (Besançon)
+    '26': 2460, // Drôme
+    '27': 2430, // Eure
+    '28': 2440, // Eure-et-Loir
+    '29': 2370, // Finistère (Brest)
+    '30': 2380, // Gard
+    '31': 2720, // Haute-Garonne (Toulouse)
+    '32': 2280, // Gers
+    '33': 2620, // Gironde (Bordeaux)
+    '34': 2530, // Hérault (Montpellier)
+    '35': 2530, // Ille-et-Vilaine (Rennes)
+    '36': 2240, // Indre
+    '37': 2470, // Indre-et-Loire (Tours)
+    '38': 2720, // Isère (Grenoble)
+    '39': 2380, // Jura
+    '40': 2390, // Landes
+    '41': 2340, // Loir-et-Cher
+    '42': 2430, // Loire
+    '43': 2280, // Haute-Loire
+    '44': 2630, // Loire-Atlantique (Nantes)
+    '45': 2510, // Loiret (Orléans)
+    '46': 2270, // Lot
+    '47': 2300, // Lot-et-Garonne
+    '48': 2250, // Lozère
+    '49': 2390, // Maine-et-Loire
+    '50': 2360, // Manche
+    '51': 2500, // Marne (Reims)
+    '52': 2230, // Haute-Marne
+    '53': 2310, // Mayenne
+    '54': 2390, // Meurthe-et-Moselle
+    '55': 2260, // Meuse
+    '56': 2390, // Morbihan
+    '57': 2460, // Moselle (Metz)
+    '58': 2250, // Nièvre
+    '59': 2490, // Nord (Lille)
+    '60': 2540, // Oise
+    '61': 2280, // Orne
+    '62': 2330, // Pas-de-Calais
+    '63': 2480, // Puy-de-Dôme (Clermont-Ferrand)
+    '64': 2490, // Pyrénées-Atlantiques (Pau, Bayonne)
+    '65': 2360, // Hautes-Pyrénées
+    '66': 2320, // Pyrénées-Orientales
+    '67': 2670, // Bas-Rhin (Strasbourg)
+    '68': 2590, // Haut-Rhin (Mulhouse)
+    '69': 2876, // Rhône (Lyon) — INSEE confirmed
+    '70': 2310, // Haute-Saône
+    '71': 2390, // Saône-et-Loire
+    '72': 2390, // Sarthe (Le Mans)
+    '73': 2660, // Savoie (Chambéry)
+    '74': 2800, // Haute-Savoie (Annecy)
+    '75': 3863, // Paris — INSEE confirmed
+    '76': 2540, // Seine-Maritime (Rouen, Le Havre)
+    '77': 2720, // Seine-et-Marne
+    '78': 3010, // Yvelines (Versailles)
+    '79': 2310, // Deux-Sèvres
+    '80': 2350, // Somme (Amiens)
+    '81': 2360, // Tarn
+    '82': 2310, // Tarn-et-Garonne
+    '83': 2590, // Var (Toulon)
+    '84': 2390, // Vaucluse (Avignon)
+    '85': 2360, // Vendée
+    '86': 2400, // Vienne (Poitiers)
+    '87': 2390, // Haute-Vienne (Limoges)
+    '88': 2290, // Vosges
+    '89': 2360, // Yonne
+    '90': 2440, // Territoire de Belfort
+    '91': 2840, // Essonne
+    '92': 3250, // Hauts-de-Seine (La Défense)
+    '93': 2500, // Seine-Saint-Denis
+    '94': 2770, // Val-de-Marne
+    '95': 2730  // Val-d'Oise
+  };
+
+  /* ─── Paris arrondissements (circles — approximation) ───────────────── */
+
+  var ARR_DATA = [
+    { code:'75101', nom:'1er arr.',  lng:2.3473, lat:48.8603, s:4800 },
+    { code:'75102', nom:'2e arr.',   lng:2.3491, lat:48.8661, s:4200 },
+    { code:'75103', nom:'3e arr.',   lng:2.3601, lat:48.8630, s:4100 },
+    { code:'75104', nom:'4e arr.',   lng:2.3527, lat:48.8551, s:4600 },
+    { code:'75105', nom:'5e arr.',   lng:2.3512, lat:48.8515, s:4900 },
+    { code:'75106', nom:'6e arr.',   lng:2.3337, lat:48.8503, s:5600 },
+    { code:'75107', nom:'7e arr.',   lng:2.3143, lat:48.8556, s:5900 },
+    { code:'75108', nom:'8e arr.',   lng:2.3073, lat:48.8748, s:6400 },
+    { code:'75109', nom:'9e arr.',   lng:2.3364, lat:48.8770, s:3800 },
+    { code:'75110', nom:'10e arr.',  lng:2.3591, lat:48.8760, s:3400 },
+    { code:'75111', nom:'11e arr.',  lng:2.3793, lat:48.8621, s:3500 },
+    { code:'75112', nom:'12e arr.',  lng:2.3894, lat:48.8429, s:3500 },
+    { code:'75113', nom:'13e arr.',  lng:2.3607, lat:48.8320, s:3300 },
+    { code:'75114', nom:'14e arr.',  lng:2.3272, lat:48.8342, s:3800 },
+    { code:'75115', nom:'15e arr.',  lng:2.2909, lat:48.8417, s:3900 },
+    { code:'75116', nom:'16e arr.',  lng:2.2697, lat:48.8633, s:5600 },
+    { code:'75117', nom:'17e arr.',  lng:2.3114, lat:48.8840, s:4100 },
+    { code:'75118', nom:'18e arr.',  lng:2.3430, lat:48.8924, s:3000 },
+    { code:'75119', nom:'19e arr.',  lng:2.3804, lat:48.8823, s:2900 },
+    { code:'75120', nom:'20e arr.',  lng:2.3960, lat:48.8648, s:2800 }
+  ];
+
+  /* ─── GeoJSON from background.js ────────────────────────────────────── */
+
+  var GEO = window.__SMF_GEO__ || null;
+
+  function circleCoords(lng, lat, r, n) {
+    n = n || 24;
     var pts = [];
     for (var i = 0; i <= n; i++) {
       var a = (i / n) * 2 * Math.PI;
@@ -20,98 +162,55 @@
     return [pts];
   }
 
-  function feat(name, salary, coords, meta) {
+  function enrichGeo(geoJson, salaryMap) {
+    if (!geoJson) return null;
     return {
-      type: 'Feature',
-      properties: Object.assign({ name: name, avgSalary: salary }, meta || {}),
-      geometry: { type: 'Polygon', coordinates: coords }
+      type: 'FeatureCollection',
+      features: geoJson.features.map(function(f) {
+        var salary = salaryMap[f.properties.code] || 2400;
+        return {
+          type: 'Feature',
+          properties: {
+            code: f.properties.code,
+            name: f.properties.nom,
+            avgSalary: salary
+          },
+          geometry: f.geometry
+        };
+      })
     };
   }
 
-  /* ─── data ──────────────────────────────────────────────────────────── */
-
-  var REGIONS = {
-    type: 'FeatureCollection',
-    features: [
-      feat('Île-de-France',               3850, rect(1.60, 48.10, 3.60, 50.00), { pop: '12.2M hab.' }),
-      feat('Hauts-de-France',             2400, rect(1.60, 50.00, 4.30, 51.10), { pop: '6.0M hab.'  }),
-      feat('Grand Est',                   2450, rect(3.60, 47.40, 8.20, 50.00), { pop: '5.6M hab.'  }),
-      feat('Normandie',                   2380, rect(-2.10, 48.40, 1.60, 50.10), { pop: '3.3M hab.' }),
-      feat('Bretagne',                    2350, rect(-5.20, 47.30, -2.10, 48.90), { pop: '3.4M hab.'}),
-      feat('Pays de la Loire',            2400, rect(-2.60, 46.30, 1.60, 48.40), { pop: '3.8M hab.' }),
-      feat('Centre-Val de Loire',         2420, rect(0.10, 46.40, 3.60, 48.10),  { pop: '2.6M hab.' }),
-      feat('Bourgogne-Franche-Comté',     2350, rect(3.60, 46.20, 7.10, 47.40), { pop: '2.8M hab.' }),
-      feat('Auvergne-Rhône-Alpes',        2720, rect(2.10, 44.10, 7.20, 46.20), { pop: '8.1M hab.' }),
-      feat('Nouvelle-Aquitaine',          2480, rect(-4.80, 43.00, 2.10, 47.30), { pop: '6.1M hab.' }),
-      feat('Occitanie',                   2450, rect(2.10, 42.30, 4.90, 44.10),  { pop: '6.0M hab.' }),
-      feat("Provence-Alpes-Côte d'Azur", 2850, rect(4.20, 43.16, 7.72, 44.90), { pop: '5.1M hab.' }),
-      feat('Corse',                       2250, rect(8.53, 41.30, 9.57, 43.10),  { pop: '0.3M hab.' }),
-    ]
-  };
-
-  var CITIES = {
-    type: 'FeatureCollection',
-    features: [
-      feat('Paris',         4200, circle(2.352,  48.857, 0.12), { region: 'Île-de-France' }),
-      feat('Lyon',          3200, circle(4.836,  45.764, 0.10), { region: 'Auvergne-Rhône-Alpes' }),
-      feat('Marseille',     2900, circle(5.370,  43.297, 0.10), { region: "Prov.-Alpes-Côte d'Azur" }),
-      feat('Toulouse',      2850, circle(1.444,  43.605, 0.09), { region: 'Occitanie' }),
-      feat('Nice',          3100, circle(7.262,  43.710, 0.08), { region: "Prov.-Alpes-Côte d'Azur" }),
-      feat('Nantes',        2800, circle(-1.554, 47.218, 0.09), { region: 'Pays de la Loire' }),
-      feat('Montpellier',   2700, circle(3.877,  43.612, 0.08), { region: 'Occitanie' }),
-      feat('Strasbourg',    2950, circle(7.752,  48.573, 0.08), { region: 'Grand Est' }),
-      feat('Bordeaux',      2900, circle(-0.579, 44.838, 0.09), { region: 'Nouvelle-Aquitaine' }),
-      feat('Lille',         2750, circle(3.057,  50.629, 0.09), { region: 'Hauts-de-France' }),
-      feat('Rennes',        2780, circle(-1.678, 48.117, 0.08), { region: 'Bretagne' }),
-      feat('Reims',         2600, circle(4.032,  49.258, 0.07), { region: 'Grand Est' }),
-      feat('Le Havre',      2580, circle(0.108,  49.494, 0.07), { region: 'Normandie' }),
-      feat('Saint-Étienne', 2450, circle(4.390,  45.435, 0.07), { region: 'Auvergne-Rhône-Alpes' }),
-      feat('Toulon',        2600, circle(5.928,  43.124, 0.07), { region: "Prov.-Alpes-Côte d'Azur" }),
-    ]
-  };
-
-  var ARR_DATA = [
-    { lng:2.3473, lat:48.8603, s:4400 }, // 1er
-    { lng:2.3491, lat:48.8661, s:4200 }, // 2e
-    { lng:2.3601, lat:48.8630, s:4100 }, // 3e
-    { lng:2.3527, lat:48.8551, s:4600 }, // 4e
-    { lng:2.3512, lat:48.8515, s:4800 }, // 5e
-    { lng:2.3337, lat:48.8503, s:5500 }, // 6e
-    { lng:2.3143, lat:48.8556, s:5800 }, // 7e
-    { lng:2.3073, lat:48.8748, s:6200 }, // 8e
-    { lng:2.3364, lat:48.8770, s:3900 }, // 9e
-    { lng:2.3591, lat:48.8760, s:3500 }, // 10e
-    { lng:2.3793, lat:48.8621, s:3600 }, // 11e
-    { lng:2.3894, lat:48.8429, s:3500 }, // 12e
-    { lng:2.3607, lat:48.8320, s:3300 }, // 13e
-    { lng:2.3272, lat:48.8342, s:3800 }, // 14e
-    { lng:2.2909, lat:48.8417, s:3900 }, // 15e
-    { lng:2.2697, lat:48.8633, s:5500 }, // 16e
-    { lng:2.3114, lat:48.8840, s:4100 }, // 17e
-    { lng:2.3430, lat:48.8924, s:3000 }, // 18e
-    { lng:2.3804, lat:48.8823, s:2900 }, // 19e
-    { lng:2.3960, lat:48.8648, s:2800 }, // 20e
-  ];
-
   var DISTRICTS = {
     type: 'FeatureCollection',
-    features: ARR_DATA.map(function (d, i) {
-      return feat((i + 1) + 'e arrondissement', d.s,
-        circle(d.lng, d.lat, 0.016, 20), { city: 'Paris' });
+    features: ARR_DATA.map(function(d) {
+      return {
+        type: 'Feature',
+        properties: { code: d.code, name: d.nom, avgSalary: d.s, sub: 'Paris' },
+        geometry: { type: 'Polygon', coordinates: circleCoords(d.lng, d.lat, 0.016, 24) }
+      };
     })
   };
 
-  var LAYER_DATA = { region: REGIONS, city: CITIES, district: DISTRICTS };
+  /* ─── color: blue (low) → cyan → green → yellow → red (high) ────────── */
 
-  /* ─── color ─────────────────────────────────────────────────────────── */
+  var S_MIN = 2100, S_MAX = 4300;
 
-  var MIN_S = 1800, MAX_S = 6500;
-
-  function salaryHue(s) {
-    return Math.round(Math.max(0, Math.min(1, (s - MIN_S) / (MAX_S - MIN_S))) * 120);
+  function salaryT(s) {
+    return Math.max(0, Math.min(1, (s - S_MIN) / (S_MAX - S_MIN)));
   }
-  function fillColor(s)   { return 'hsla(' + salaryHue(s) + ',78%,48%,0.52)'; }
-  function strokeColor(s) { return 'hsl('  + salaryHue(s) + ',78%,28%)'; }
+  function fillColor(s) {
+    var hue = Math.round((1 - salaryT(s)) * 240);
+    return 'hsla(' + hue + ',85%,50%,0.55)';
+  }
+  function strokeColor(s) {
+    var hue = Math.round((1 - salaryT(s)) * 240);
+    return 'hsl(' + hue + ',85%,30%)';
+  }
+  function labelColor(s) {
+    var hue = Math.round((1 - salaryT(s)) * 240);
+    return 'hsl(' + hue + ',85%,25%)';
+  }
 
   /* ─── tooltip ───────────────────────────────────────────────────────── */
 
@@ -122,12 +221,12 @@
     tip = document.createElement('div');
     tip.style.cssText =
       'position:fixed;z-index:99999;pointer-events:none;display:none;' +
-      'background:rgba(255,255,255,0.97);border:1px solid #ddd;border-radius:8px;' +
-      'padding:10px 14px;min-width:190px;' +
+      'background:rgba(255,255,255,0.97);border:1px solid #ddd;border-radius:10px;' +
+      'padding:11px 15px;min-width:200px;max-width:250px;' +
       'font:13px/1.6 Roboto,Arial,sans-serif;' +
-      'box-shadow:0 2px 12px rgba(0,0,0,0.18);';
+      'box-shadow:0 4px 16px rgba(0,0,0,0.18);';
     document.body.appendChild(tip);
-    document.addEventListener('mousemove', function (e) {
+    document.addEventListener('mousemove', function(e) {
       mouseX = e.clientX; mouseY = e.clientY;
       if (tipVisible) placeTip();
     });
@@ -135,7 +234,7 @@
 
   function placeTip() {
     if (!tip) return;
-    var mg = 14, w = tip.offsetWidth || 200, h = tip.offsetHeight || 80;
+    var mg = 16, w = tip.offsetWidth || 220, h = tip.offsetHeight || 90;
     var x = mouseX + mg, y = mouseY + mg;
     if (x + w > innerWidth  - mg) x = mouseX - w - mg;
     if (y + h > innerHeight - mg) y = mouseY - h - mg;
@@ -147,16 +246,30 @@
     ensureTip();
     if (!tip) return;
     var s = props.avgSalary;
-    var sub = props.city || props.region || props.pop || '';
+    var sub = props.sub || (props.code ? 'Code ' + props.code : '');
+    var bar = buildMiniBar(s);
     tip.innerHTML =
-      '<div style="font-weight:700;font-size:14px;margin-bottom:2px">' + props.name + '</div>' +
-      (sub ? '<div style="color:#888;font-size:11px;margin-bottom:5px">' + sub + '</div>' : '') +
-      '<hr style="border:none;border-top:1px solid #f0f0f0;margin:4px 0">' +
-      '<div>Salaire moyen: <strong style="color:' + strokeColor(s) + '">' +
-      s.toLocaleString('fr-FR') + ' €</strong><span style="color:#888">/mois</span></div>';
+      '<div style="font-weight:700;font-size:14px;color:#222;margin-bottom:2px">' + props.name + '</div>' +
+      (sub ? '<div style="color:#999;font-size:11px;margin-bottom:6px">' + sub + '</div>' : '') +
+      '<div style="margin:4px 0">' + bar + '</div>' +
+      '<div style="margin-top:5px">Salaire net moyen&nbsp;: ' +
+        '<strong style="color:' + labelColor(s) + ';font-size:15px">' +
+        s.toLocaleString('fr-FR') + '&nbsp;€</strong>' +
+        '<span style="color:#999;font-size:11px">&nbsp;/mois</span>' +
+      '</div>' +
+      '<div style="margin-top:6px;font-size:10px;color:#bbb">Source&nbsp;: INSEE MELODI 2023</div>';
     tip.style.display = 'block';
     tipVisible = true;
     placeTip();
+  }
+
+  function buildMiniBar(s) {
+    var t = salaryT(s);
+    var w = Math.round(t * 100);
+    var hue = Math.round((1 - t) * 240);
+    return '<div style="background:#f0f0f0;border-radius:4px;height:6px;overflow:hidden">' +
+      '<div style="width:' + w + '%;height:100%;background:hsl(' + hue + ',85%,50%);border-radius:4px;transition:width 0.2s"></div>' +
+      '</div>';
   }
 
   function hideTip() {
@@ -164,58 +277,84 @@
     if (tip) tip.style.display = 'none';
   }
 
-  /* ─── legend + toggle ───────────────────────────────────────────────── */
+  /* ─── legend ────────────────────────────────────────────────────────── */
 
-  var legendEl = null, overlayOn = true, currentLevel = null;
-  var LEVEL_LABELS = { region: 'Régions', city: 'Villes', district: 'Quartiers (Paris)' };
+  var legendEl = null;
+  var LEVEL_LABELS = {
+    region:      'Régions (13)',
+    departement: 'Départements (96)',
+    district:    'Arrondissements · Paris'
+  };
 
   function buildLegend() {
     var el = document.createElement('div');
     el.id = '_smf_legend';
     el.style.cssText =
-      'position:fixed;bottom:80px;left:10px;z-index:5000;' +
-      'background:rgba(255,255,255,0.95);border:1px solid #ccc;border-radius:8px;' +
-      'padding:10px 14px;min-width:175px;' +
+      'position:fixed;bottom:90px;left:12px;z-index:999999;' +
+      'background:rgba(255,255,255,0.96);border:1px solid #ddd;border-radius:10px;' +
+      'padding:11px 14px;min-width:185px;' +
       'font:12px Roboto,Arial,sans-serif;' +
-      'box-shadow:0 2px 8px rgba(0,0,0,0.15);user-select:none;';
-    var g = 'linear-gradient(to right,hsl(0,78%,48%),hsl(60,78%,48%),hsl(120,78%,48%))';
+      'box-shadow:0 2px 10px rgba(0,0,0,0.14);user-select:none;';
+
+    // Blue → cyan → green → yellow → red gradient (matches salaryColor)
+    var g = 'linear-gradient(to right,' +
+      'hsl(240,85%,50%),' +
+      'hsl(180,85%,50%),' +
+      'hsl(120,85%,50%),' +
+      'hsl(60,85%,50%),' +
+      'hsl(0,85%,50%))';
+
     el.innerHTML =
-      '<div style="font-weight:700;margin-bottom:6px">Salaire moyen mensuel</div>' +
-      '<div style="height:10px;border-radius:4px;background:' + g + ';margin-bottom:3px"></div>' +
-      '<div style="display:flex;justify-content:space-between;color:#555">' +
-        '<span>1 800 €</span><span>4 150 €</span><span>6 500 €</span>' +
+      '<div style="font-weight:700;font-size:12px;margin-bottom:7px;color:#333">Salaire net mensuel</div>' +
+      '<div style="height:11px;border-radius:5px;background:' + g + ';margin-bottom:4px"></div>' +
+      '<div style="display:flex;justify-content:space-between;color:#666;font-size:10px">' +
+        '<span>2 100 €</span><span>3 200 €</span><span>4 300 €</span>' +
       '</div>' +
-      '<div id="_smf_lvl" style="margin-top:7px;text-align:center;color:#555;font-size:11px">Niveau: Régions</div>';
+      '<div id="_smf_lvl" style="margin-top:8px;text-align:center;color:#888;font-size:10px;' +
+        'background:#f5f5f5;border-radius:4px;padding:2px 0">Régions</div>' +
+      '<div style="margin-top:6px;font-size:9px;color:#ccc;text-align:center">INSEE MELODI · 2023</div>';
     return el;
   }
+
+  function updateLevelLabel(level) {
+    var el = document.getElementById('_smf_lvl');
+    if (el) el.textContent = LEVEL_LABELS[level] || level;
+  }
+
+  /* ─── toggle button ─────────────────────────────────────────────────── */
+
+  var overlayOn = true;
 
   function buildToggle(map) {
     var btn = document.createElement('div');
     btn.id = '_smf_toggle';
     btn.style.cssText =
-      'position:fixed;top:80px;right:10px;z-index:5000;' +
-      'background:#fff;border-radius:3px;' +
-      'box-shadow:0 1px 4px rgba(0,0,0,0.35);' +
-      'cursor:pointer;padding:9px 14px;' +
-      'font:600 13px Roboto,Arial,sans-serif;' +
-      'user-select:none;display:flex;align-items:center;gap:8px;' +
+      'position:fixed;top:80px;right:12px;z-index:999999;' +
+      'background:#fff;border-radius:6px;' +
+      'box-shadow:0 2px 6px rgba(0,0,0,0.28);' +
+      'cursor:pointer;padding:8px 13px;' +
+      'font:600 12px Roboto,Arial,sans-serif;' +
+      'user-select:none;display:flex;align-items:center;gap:7px;' +
       'border-left:4px solid #1a73e8;';
 
     function render() {
-      var dot = '<span style="width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;background:';
       if (overlayOn) {
         btn.style.borderLeftColor = '#1a73e8';
-        btn.innerHTML = dot + '#1a73e8"></span><span style="color:#1a73e8">Зарплаты: ВКЛ</span>';
+        btn.innerHTML =
+          '<span style="width:8px;height:8px;border-radius:50%;background:#1a73e8;display:inline-block;flex-shrink:0"></span>' +
+          '<span style="color:#1a73e8">Salaires ON</span>';
       } else {
-        btn.style.borderLeftColor = '#bbb';
-        btn.innerHTML = dot + '#bbb"></span><span style="color:#999">Зарплаты: ВЫКЛ</span>';
+        btn.style.borderLeftColor = '#ccc';
+        btn.innerHTML =
+          '<span style="width:8px;height:8px;border-radius:50%;background:#ccc;display:inline-block;flex-shrink:0"></span>' +
+          '<span style="color:#999">Salaires OFF</span>';
       }
     }
     render();
 
-    btn.addEventListener('mouseenter', function () { btn.style.background = '#f5f5f5'; });
-    btn.addEventListener('mouseleave', function () { btn.style.background = '#fff'; });
-    btn.addEventListener('click', function () {
+    btn.addEventListener('mouseenter', function() { btn.style.background = '#f8f8f8'; });
+    btn.addEventListener('mouseleave', function() { btn.style.background = '#fff'; });
+    btn.addEventListener('click', function() {
       overlayOn = !overlayOn;
       render();
       if (overlayOn) {
@@ -223,7 +362,7 @@
         applyLayer(map);
         if (legendEl) legendEl.style.display = '';
       } else {
-        map.data.forEach(function (f) { map.data.remove(f); });
+        map.data.forEach(function(f) { map.data.remove(f); });
         currentLevel = null;
         hideTip();
         if (legendEl) legendEl.style.display = 'none';
@@ -232,23 +371,27 @@
     return btn;
   }
 
-  function updateLevelLabel(level) {
-    var el = document.getElementById('_smf_lvl');
-    if (el) el.textContent = 'Niveau: ' + LEVEL_LABELS[level];
-  }
-
   /* ─── layer management ──────────────────────────────────────────────── */
+
+  var currentLevel = null;
 
   function nearParis(map) {
     var c = map.getCenter();
-    return Math.abs(c.lat() - 48.857) < 0.18 && Math.abs(c.lng() - 2.352) < 0.28;
+    return Math.abs(c.lat() - 48.857) < 0.20 && Math.abs(c.lng() - 2.352) < 0.30;
   }
 
   function getLevel(map) {
     var z = map.getZoom();
     if (z <= 7)  return 'region';
-    if (z <= 11) return 'city';
-    return nearParis(map) ? 'district' : 'city';
+    if (z <= 10) return 'departement';
+    return nearParis(map) ? 'district' : 'departement';
+  }
+
+  function getLayerData(level) {
+    if (level === 'district') return DISTRICTS;
+    if (level === 'region')   return GEO ? enrichGeo(GEO.regions, REG_SALARY) : null;
+    if (level === 'departement') return GEO ? enrichGeo(GEO.departements, DEP_SALARY) : null;
+    return null;
   }
 
   function applyLayer(map) {
@@ -257,25 +400,46 @@
     try { level = getLevel(map); } catch (e) { return; }
     if (level === currentLevel) return;
     currentLevel = level;
-    map.data.forEach(function (f) { map.data.remove(f); });
-    try { map.data.addGeoJson(LAYER_DATA[level]); } catch (e) { console.error('[SalaryMaps]', e); return; }
-    map.data.setStyle(function (f) {
+
+    map.data.forEach(function(f) { map.data.remove(f); });
+
+    var data = getLayerData(level);
+    if (!data) {
+      // GeoJSON not loaded yet — show fallback message and retry
+      if (level !== 'district') {
+        console.log('[SalaryMaps] GeoJSON not ready for level:', level);
+        setTimeout(function() { currentLevel = null; applyLayer(map); }, 1500);
+      }
+      return;
+    }
+
+    try { map.data.addGeoJson(data); } catch (e) {
+      console.error('[SalaryMaps] addGeoJson error:', e);
+      return;
+    }
+
+    map.data.setStyle(function(f) {
       var s = f.getProperty('avgSalary');
-      return { fillColor: fillColor(s), fillOpacity: 0.52,
-               strokeColor: strokeColor(s), strokeWeight: 1.5, strokeOpacity: 0.85 };
+      return {
+        fillColor:    fillColor(s),
+        fillOpacity:  0.55,
+        strokeColor:  strokeColor(s),
+        strokeWeight: 1.5,
+        strokeOpacity: 0.9
+      };
     });
+
     updateLevelLabel(level);
-    console.log('[SalaryMaps] layer:', level);
+    console.log('[SalaryMaps] layer:', level, '(' + data.features.length + ' features)');
   }
 
-  /* ─── attach overlay to map instance ───────────────────────────────── */
+  /* ─── attach to map instance ─────────────────────────────────────────── */
 
   function attachToMap(map) {
     if (map.__smf_done) return;
     map.__smf_done = true;
-    console.log('[SalaryMaps] attached to map');
+    console.log('[SalaryMaps] attached to map instance');
 
-    // Wait for body in case we're called very early
     function doAttach() {
       ensureTip();
       if (!document.getElementById('_smf_legend')) {
@@ -294,44 +458,42 @@
       document.addEventListener('DOMContentLoaded', doAttach);
     }
 
-    map.addListener('zoom_changed', function () {
+    map.addListener('zoom_changed', function() {
       hideTip();
       if (overlayOn) { currentLevel = null; applyLayer(map); }
     });
 
     var ct = null;
-    map.addListener('center_changed', function () {
+    map.addListener('center_changed', function() {
       clearTimeout(ct);
-      ct = setTimeout(function () { if (overlayOn) applyLayer(map); }, 300);
+      ct = setTimeout(function() { if (overlayOn) applyLayer(map); }, 400);
     });
 
-    map.data.addListener('mouseover', function (e) {
+    map.data.addListener('mouseover', function(e) {
       map.data.overrideStyle(e.feature, { fillOpacity: 0.75, strokeWeight: 2.5 });
       showTip(e.feature.getProperties());
     });
-    map.data.addListener('mouseout', function (e) {
+    map.data.addListener('mouseout', function(e) {
       map.data.revertStyle(e.feature);
       hideTip();
     });
   }
 
-  /* ─── find map instance (three strategies) ──────────────────────────── */
+  /* ─── find map instance ──────────────────────────────────────────────── */
 
   var foundMaps = [];
-  function hasMap(m) { return foundMaps.indexOf(m) !== -1; }
 
   function onMapFound(m) {
-    if (!m || hasMap(m)) return;
+    if (!m || foundMaps.indexOf(m) !== -1) return;
     foundMaps.push(m);
     try {
-      // If getZoom() returns a number the map is already initialised
       if (typeof m.getZoom() === 'number') {
         attachToMap(m);
       } else {
-        google.maps.event.addListenerOnce(m, 'idle', function () { attachToMap(m); });
+        google.maps.event.addListenerOnce(m, 'idle', function() { attachToMap(m); });
       }
     } catch (e) {
-      google.maps.event.addListenerOnce(m, 'idle', function () { attachToMap(m); });
+      google.maps.event.addListenerOnce(m, 'idle', function() { attachToMap(m); });
     }
   }
 
@@ -340,77 +502,92 @@
     maps.__smf_patched = true;
     console.log('[SalaryMaps] patching google.maps');
 
-    // ── Strategy A: patch prototype ──────────────────────────────────
-    // These methods are called by the Maps engine on every render/interaction,
-    // so patching them catches the existing instance immediately.
+    // Strategy A: patch prototype methods (catches already-running map)
     var METHODS = ['setZoom','setCenter','panTo','fitBounds','setOptions',
                    'getDiv','getBounds','getCenter','getZoom','getMapTypeId'];
-    METHODS.forEach(function (name) {
+    METHODS.forEach(function(name) {
       var orig = maps.Map.prototype[name];
       if (typeof orig !== 'function') return;
-      maps.Map.prototype[name] = function () {
-        onMapFound(this);                     // no-op after first call
+      maps.Map.prototype[name] = function() {
+        onMapFound(this);
         return orig.apply(this, arguments);
       };
     });
 
-    // ── Strategy B: proxy constructor ────────────────────────────────
+    // Strategy B: proxy constructor (catches new map instances)
     maps.Map = new Proxy(maps.Map, {
-      construct: function (T, args, NT) {
+      construct: function(T, args, NT) {
         var inst = Reflect.construct(T, args, NT);
         onMapFound(inst);
-        google.maps.event.addListenerOnce(inst, 'idle', function () { onMapFound(inst); });
+        google.maps.event.addListenerOnce(inst, 'idle', function() { onMapFound(inst); });
         return inst;
       }
     });
 
-    // ── Strategy C: trigger resize ────────────────────────────────────
-    // Forces the Maps engine to call getDiv/getBounds etc. on any live instance,
-    // which routes through our patched prototype → onMapFound.
+    // Strategy C: resize triggers to wake up existing instance
     function kick() { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }
     setTimeout(kick, 50);
-    setTimeout(kick, 300);
-    setTimeout(kick, 1000);
+    setTimeout(kick, 400);
+    setTimeout(kick, 1200);
     setTimeout(kick, 3000);
+
+    // Strategy D: scan div.__gm for existing instances
+    function scanDom() {
+      var divs = document.querySelectorAll('div');
+      for (var i = 0; i < divs.length; i++) {
+        try {
+          var gm = divs[i].__gm;
+          if (!gm || typeof gm !== 'object') continue;
+          for (var k in gm) {
+            try {
+              var v = gm[k];
+              if (v && typeof v.getZoom === 'function' && typeof v.getCenter === 'function') {
+                onMapFound(v);
+              }
+            } catch (e2) {}
+          }
+        } catch (e) {}
+      }
+    }
+    [100, 600, 1800, 5000].forEach(function(t) { setTimeout(scanDom, t); });
+
+    var obs = new MutationObserver(function() { scanDom(); });
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+    setTimeout(function() { obs.disconnect(); }, 30000);
   }
 
-  /* ─── watch for google / google.maps ────────────────────────────────── */
+  /* ─── watch for google.maps ──────────────────────────────────────────── */
 
   function watchMapsOn(g) {
     if (g.maps) { patchMaps(g.maps); return; }
-    // google object exists but .maps not set yet — intercept the assignment
-    var _m = undefined;
+    var _m;
     try {
       Object.defineProperty(g, 'maps', {
         configurable: true,
-        get: function () { return _m; },
-        set: function (v) { _m = v; if (v) patchMaps(v); }
+        get: function() { return _m; },
+        set: function(v) { _m = v; if (v) patchMaps(v); }
       });
-    } catch (e) { /* will be caught by polling */ }
+    } catch (e) {}
   }
 
   function watchForGoogle() {
-    // Already available?
     if (window.google) { watchMapsOn(window.google); }
-
-    // Intercept future window.google assignments
     var _g = window.google;
     try {
       Object.defineProperty(window, 'google', {
         configurable: true,
-        get: function () { return _g; },
-        set: function (v) { _g = v; if (v) watchMapsOn(v); }
+        get: function() { return _g; },
+        set: function(v) { _g = v; if (v) watchMapsOn(v); }
       });
-    } catch (e) { /* non-configurable — rely on polling */ }
+    } catch (e) {}
 
-    // Polling safety-net — checks every 300 ms for up to 20 s
-    var pid = setInterval(function () {
+    var pid = setInterval(function() {
       var g = window.google;
       if (!g || !g.maps) return;
       if (!g.maps.__smf_patched) patchMaps(g.maps);
       else clearInterval(pid);
     }, 300);
-    setTimeout(function () { clearInterval(pid); }, 20000);
+    setTimeout(function() { clearInterval(pid); }, 20000);
   }
 
   watchForGoogle();

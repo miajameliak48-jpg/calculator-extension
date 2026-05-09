@@ -1,6 +1,32 @@
 'use strict';
 
-var injected = {};
+var injecting = {};
+var geoPromise = null;
+
+var GEO_KEY = 'smf_geo_v2';
+var REG_URL  = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions-version-simplifiee.geojson';
+var DEP_URL  = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson';
+
+function getGeoData() {
+  if (!geoPromise) geoPromise = loadGeo();
+  return geoPromise;
+}
+
+async function loadGeo() {
+  var stored = await chrome.storage.local.get(GEO_KEY);
+  if (stored[GEO_KEY]) return stored[GEO_KEY];
+
+  console.log('[SalaryMaps] fetching GeoJSON from GitHub...');
+  var results = await Promise.all([
+    fetch(REG_URL).then(function(r) { return r.json(); }),
+    fetch(DEP_URL).then(function(r) { return r.json(); })
+  ]);
+
+  var geo = { regions: results[0], departements: results[1] };
+  await chrome.storage.local.set({ [GEO_KEY]: geo });
+  console.log('[SalaryMaps] GeoJSON cached.');
+  return geo;
+}
 
 function isMapsUrl(url) {
   return url && (
@@ -9,35 +35,56 @@ function isMapsUrl(url) {
   );
 }
 
-function tryInject(tabId) {
-  chrome.scripting.executeScript(
-    { target: { tabId: tabId }, files: ['injected.js'], world: 'MAIN' },
-    function () {
-      // Suppress "Could not establish connection" and similar benign errors
-      var _err = chrome.runtime.lastError;
-    }
-  );
+async function tryInject(tabId) {
+  if (injecting[tabId]) return;
+  injecting[tabId] = true;
+
+  try {
+    var geo = await getGeoData();
+
+    // Step 1: inject geo data as a global variable in MAIN world
+    await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      world: 'MAIN',
+      func: function(geoData) { window.__SMF_GEO__ = geoData; },
+      args: [geo]
+    });
+
+    // Step 2: inject the overlay script
+    await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ['injected.js'],
+      world: 'MAIN'
+    });
+  } catch (e) {
+    // Tab may not be ready yet — suppress benign errors
+  } finally {
+    injecting[tabId] = false;
+  }
 }
 
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-  // Reset injection flag on every new navigation
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  if (!isMapsUrl(tab.url || '')) return;
+
   if (changeInfo.status === 'loading') {
-    delete injected[tabId];
+    // Kick off geo fetch in background so it's ready when page loads
+    getGeoData().catch(function() {});
+    return;
   }
 
-  if (!isMapsUrl(tab.url || '')) return;
-  if (injected[tabId]) return;
-
-  // Inject when page is fully loaded (document + all scripts executed)
   if (changeInfo.status === 'complete') {
-    injected[tabId] = true;
     tryInject(tabId);
   }
 });
 
-// Inject into already-open Maps tabs when the extension is installed/reloaded
-chrome.runtime.onInstalled.addListener(function () {
-  chrome.tabs.query({}, function (tabs) {
+chrome.runtime.onInstalled.addListener(function() {
+  // Pre-fetch and cache GeoJSON on install
+  getGeoData().catch(function(e) {
+    console.warn('[SalaryMaps] geo prefetch failed:', e);
+  });
+
+  // Inject into already-open Maps tabs
+  chrome.tabs.query({}, function(tabs) {
     for (var i = 0; i < tabs.length; i++) {
       if (isMapsUrl(tabs[i].url || '')) {
         tryInject(tabs[i].id);
@@ -45,3 +92,6 @@ chrome.runtime.onInstalled.addListener(function () {
     }
   });
 });
+
+// Pre-fetch on SW startup (after termination/restart)
+getGeoData().catch(function() {});

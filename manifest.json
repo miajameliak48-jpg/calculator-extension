@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Salary Maps — France",
-  "version": "1.3",
-  "description": "Visualise average monthly salaries on Google Maps",
-  "permissions": ["scripting", "tabs"],
+  "version": "2.0",
+  "description": "Carte thermique des salaires nets moyens en France (INSEE 2023)",
+  "permissions": ["scripting", "tabs", "storage"],
   "host_permissions": [
     "https://www.google.com/maps*",
-    "https://maps.google.com/*"
+    "https://maps.google.com/*",
+    "https://raw.githubusercontent.com/*"
   ],
   "background": {
     "service_worker": "background.js"

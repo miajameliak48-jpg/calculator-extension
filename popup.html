@@ -7,38 +7,54 @@
     body {
       font-family: Roboto, Arial, sans-serif;
       font-size: 13px;
-      width: 250px;
-      padding: 14px 16px;
+      width: 256px;
+      padding: 14px 16px 16px;
       color: #333;
+      background: #fff;
     }
-    h3 { font-size: 15px; margin-bottom: 10px; }
-    .row {
+
+    .header {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin: 6px 0;
+      margin-bottom: 12px;
     }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: linear-gradient(135deg, #2196f3, #f44336);
+      flex-shrink: 0;
+    }
+    h3 { font-size: 14px; font-weight: 700; color: #222; }
+    .version { font-size: 10px; color: #bbb; margin-left: auto; }
+
+    .zoom-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+    .zoom-table td { padding: 4px 0; }
     .badge {
+      display: inline-block;
       background: #e8f0fe;
       color: #1a73e8;
       border-radius: 4px;
       padding: 2px 7px;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10px;
+      font-weight: 700;
       white-space: nowrap;
     }
-    .label { color: #444; }
-    .divider {
-      border: none;
-      border-top: 1px solid #eee;
-      margin: 10px 0;
-    }
-    .note { color: #666; font-size: 11px; line-height: 1.55; }
+    .zlabel { color: #555; padding-left: 8px; font-size: 12px; }
+
+    .divider { border: none; border-top: 1px solid #eee; margin: 10px 0; }
+
+    .legend-title { font-weight: 700; font-size: 11px; color: #444; margin-bottom: 5px; }
     .grad {
-      height: 8px;
-      border-radius: 4px;
-      background: linear-gradient(to right, hsl(0,78%,48%), hsl(60,78%,48%), hsl(120,78%,48%));
-      margin: 6px 0 2px;
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(to right,
+        hsl(240,85%,50%),
+        hsl(180,85%,50%),
+        hsl(120,85%,50%),
+        hsl(60,85%,50%),
+        hsl(0,85%,50%)
+      );
+      margin-bottom: 4px;
     }
     .scale {
       display: flex;
@@ -46,32 +62,73 @@
       font-size: 10px;
       color: #777;
     }
+    .scale-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #bbb;
+      margin-top: 2px;
+    }
+
+    .note { color: #777; font-size: 11px; line-height: 1.55; margin-bottom: 4px; }
+    .source { font-size: 10px; color: #bbb; margin-top: 8px; text-align: center; }
+
+    a { color: #1a73e8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h3>Salary Maps — France</h3>
+  <div class="header">
+    <div class="dot"></div>
+    <h3>Salary Maps — France</h3>
+    <span class="version">v2.0</span>
+  </div>
 
-  <div class="row"><span class="badge">Zoom ≤ 7</span><span class="label">Régions</span></div>
-  <div class="row"><span class="badge">Zoom 8–11</span><span class="label">Villes</span></div>
-  <div class="row"><span class="badge">Zoom ≥ 12</span><span class="label">Arrondissements (Paris)</span></div>
+  <table class="zoom-table">
+    <tr>
+      <td><span class="badge">zoom ≤ 7</span></td>
+      <td class="zlabel">13 Régions</td>
+    </tr>
+    <tr>
+      <td><span class="badge">zoom 8–10</span></td>
+      <td class="zlabel">96 Départements</td>
+    </tr>
+    <tr>
+      <td><span class="badge">zoom ≥ 11</span></td>
+      <td class="zlabel">Arrondissements (Paris)</td>
+    </tr>
+  </table>
 
   <hr class="divider">
 
-  <div style="font-weight:600;font-size:11px;margin-bottom:4px">Échelle des couleurs</div>
+  <div class="legend-title">Échelle de couleur</div>
   <div class="grad"></div>
   <div class="scale">
-    <span>Bas</span><span>Moyen</span><span>Élevé</span>
+    <span>2 100 €</span>
+    <span>3 200 €</span>
+    <span>4 300 €</span>
+  </div>
+  <div class="scale-label">
+    <span style="color:hsl(240,85%,40%)">● Bas</span>
+    <span style="color:hsl(120,85%,35%)">● Moyen</span>
+    <span style="color:hsl(0,85%,40%)">● Élevé</span>
   </div>
 
   <hr class="divider">
 
   <p class="note">
     Ouvrez <strong>Google Maps</strong>, naviguez vers la France et zoomez.
-    Les polygones colorés indiquent le salaire net mensuel moyen.
-    Survolez une zone pour voir le détail.
+    Les zones colorées affichent le salaire net mensuel moyen.
+    <strong>Survolez</strong> une zone pour le détail.
   </p>
-  <p class="note" style="margin-top:6px">
-    Si la carte est déjà ouverte, rechargez l'onglet.
+  <p class="note" style="margin-top:5px">
+    Si la carte est déjà ouverte, <strong>rechargez l'onglet</strong>.
+    Au premier lancement, les contours se téléchargent (~2 sec).
   </p>
+
+  <div class="source">
+    Données&nbsp;: <a href="https://www.insee.fr/fr/statistiques/2021266" target="_blank">INSEE MELODI 2023</a>
+    · Contours&nbsp;: <a href="https://github.com/gregoiredavid/france-geojson" target="_blank">gregoiredavid/france-geojson</a>
+  </div>
 </body>
 </html>
