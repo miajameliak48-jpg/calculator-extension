@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Read(*)",
+      "Write(salary-maps/**)",
+      "Edit(salary-maps/**)"
+    ]
+  },
+  "model": "claude-opus-4-7",
+  "thinking": {
+    "type": "adaptive"
+  }
+}
