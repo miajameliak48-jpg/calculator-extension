@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Калькулятор",
+  "version": "1.0",
+  "description": "Простой калькулятор в браузере",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Калькулятор"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

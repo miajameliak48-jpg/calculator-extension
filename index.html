@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* Кнопка открытия */
+    #open-btn {
+      background: #ff9f0a;
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 16px 36px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(255, 159, 10, 0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+      letter-spacing: 0.5px;
+    }
+
+    #open-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(255, 159, 10, 0.55);
+    }
+
+    #open-btn:active { transform: translateY(0); }
+
+    /* Оверлей */
+    #overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      animation: fadeIn 0.2s ease;
+    }
+
+    #overlay.open { display: flex; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Окно калькулятора */
+    .calculator-wrap {
+      position: relative;
+      animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+
+    #close-btn {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #3a3a3c;
+      color: #aaa;
+      border: none;
+      font-size: 16px;
+      line-height: 30px;
+      text-align: center;
+      cursor: pointer;
+      z-index: 11;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    #close-btn:hover { background: #ff453a; color: #fff; }
+
+    /* Калькулятор */
+    .calculator {
+      width: 280px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    }
+
+    .display {
+      background: #1c1c1e;
+      padding: 16px 20px 8px;
+      text-align: right;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .expression { color: #888; font-size: 16px; min-height: 22px; margin-bottom: 4px; word-break: break-all; }
+    .result { color: #fff; font-size: 48px; font-weight: 300; line-height: 1; word-break: break-all; transition: font-size 0.1s; }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: #3a3a3c;
+    }
+
+    .btn {
+      background: #505050;
+      color: #fff;
+      border: none;
+      padding: 0;
+      height: 65px;
+      font-size: 22px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: filter 0.1s;
+      user-select: none;
+    }
+
+    .btn:hover  { filter: brightness(1.2); }
+    .btn:active { filter: brightness(0.8); }
+
+    .btn.light  { background: #a5a5a5; color: #000; }
+    .btn.orange { background: #ff9f0a; color: #fff; }
+    .btn.zero   { grid-column: span 2; text-align: left; padding-left: 24px; }
+    .btn.orange.active { background: #fff; color: #ff9f0a; }
+  </style>
+</head>
+<body>
+
+  <button id="open-btn" onclick="openCalc()">🧮 Открыть калькулятор</button>
+
+  <div id="overlay" onclick="handleOverlayClick(event)">
+    <div class="calculator-wrap">
+      <button id="close-btn" onclick="closeCalc()" title="Закрыть">✕</button>
+      <div class="calculator">
+        <div class="display">
+          <div class="expression" id="expression"></div>
+          <div class="result" id="result">0</div>
+        </div>
+        <div class="buttons">
+          <button class="btn light" onclick="clearAll()">C</button>
+          <button class="btn light" onclick="toggleSign()">+/−</button>
+          <button class="btn light" onclick="percent()">%</button>
+          <button class="btn orange" onclick="setOperator('/')">÷</button>
+
+          <button class="btn" onclick="appendNumber('7')">7</button>
+          <button class="btn" onclick="appendNumber('8')">8</button>
+          <button class="btn" onclick="appendNumber('9')">9</button>
+          <button class="btn orange" onclick="setOperator('*')">×</button>
+
+          <button class="btn" onclick="appendNumber('4')">4</button>
+          <button class="btn" onclick="appendNumber('5')">5</button>
+          <button class="btn" onclick="appendNumber('6')">6</button>
+          <button class="btn orange" onclick="setOperator('-')">−</button>
+
+          <button class="btn" onclick="appendNumber('1')">1</button>
+          <button class="btn" onclick="appendNumber('2')">2</button>
+          <button class="btn" onclick="appendNumber('3')">3</button>
+          <button class="btn orange" onclick="setOperator('+')">+</button>
+
+          <button class="btn zero" onclick="appendNumber('0')">0</button>
+          <button class="btn" onclick="appendDot()">.</button>
+          <button class="btn orange" onclick="calculate()">=</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentInput = '';
+    let previousInput = '';
+    let operator = null;
+    let shouldReset = false;
+
+    const resultEl = document.getElementById('result');
+    const expressionEl = document.getElementById('expression');
+
+    function updateDisplay(value) {
+      const str = String(value);
+      resultEl.style.fontSize = str.length > 9 ? '28px' : str.length > 6 ? '36px' : '48px';
+      resultEl.textContent = str;
+    }
+
+    function appendNumber(num) {
+      if (shouldReset) { currentInput = ''; shouldReset = false; }
+      if (currentInput.length >= 12) return;
+      currentInput += num;
+      updateDisplay(currentInput);
+    }
+
+    function appendDot() {
+      if (shouldReset) { currentInput = '0'; shouldReset = false; }
+      if (!currentInput.includes('.')) {
+        currentInput = (currentInput || '0') + '.';
+        updateDisplay(currentInput);
+      }
+    }
+
+    const opSymbols = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+    function setOperator(op) {
+      if (currentInput === '' && previousInput === '') return;
+      if (currentInput !== '' && previousInput !== '' && operator) calculate(true);
+      operator = op;
+      previousInput = currentInput || previousInput;
+      currentInput = '';
+      expressionEl.textContent = previousInput + ' ' + opSymbols[op];
+      document.querySelectorAll('.btn.orange').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.btn.orange').forEach(b => {
+        if (b.textContent === opSymbols[op]) b.classList.add('active');
+      });
+    }
+
+    function calculate(intermediate = false) {
+      if (!operator || previousInput === '') return;
+      const a = parseFloat(previousInput);
+      const b = parseFloat(currentInput === '' ? previousInput : currentInput);
+      let result;
+      switch (operator) {
+        case '+': result = a + b; break;
+        case '-': result = a - b; break;
+        case '*': result = a * b; break;
+        case '/':
+          if (b === 0) { updateDisplay('Ошибка'); expressionEl.textContent = ''; clearAll(); return; }
+          result = a / b; break;
+      }
+      result = parseFloat(result.toPrecision(12));
+      if (!intermediate) {
+        expressionEl.textContent = previousInput + ' ' + opSymbols[operator] + ' ' + b + ' =';
+        operator = null; previousInput = '';
+        document.querySelectorAll('.btn.orange').forEach(b => b.classList.remove('active'));
+      } else {
+        previousInput = String(result);
+      }
+      currentInput = String(result);
+      updateDisplay(currentInput);
+      shouldReset = true;
+    }
+
+    function clearAll() {
+      currentInput = ''; previousInput = ''; operator = null; shouldReset = false;
+      expressionEl.textContent = '';
+      updateDisplay('0');
+      document.querySelectorAll('.btn.orange').forEach(b => b.classList.remove('active'));
+    }
+
+    function toggleSign() {
+      if (!currentInput || currentInput === '0') return;
+      currentInput = String(parseFloat(currentInput) * -1);
+      updateDisplay(currentInput);
+    }
+
+    function percent() {
+      if (!currentInput) return;
+      currentInput = String(parseFloat(currentInput) / 100);
+      updateDisplay(currentInput);
+    }
+
+    function openCalc() {
+      document.getElementById('overlay').classList.add('open');
+    }
+
+    function closeCalc() {
+      document.getElementById('overlay').classList.remove('open');
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('overlay')) closeCalc();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeCalc();
+    });
+  </script>
+</body>
+</html>
