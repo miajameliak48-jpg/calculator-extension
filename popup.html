@@ -1,42 +1,77 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Калькулятор</title>
-  <link rel="stylesheet" href="popup.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Roboto, Arial, sans-serif;
+      font-size: 13px;
+      width: 250px;
+      padding: 14px 16px;
+      color: #333;
+    }
+    h3 { font-size: 15px; margin-bottom: 10px; }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+    }
+    .badge {
+      background: #e8f0fe;
+      color: #1a73e8;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .label { color: #444; }
+    .divider {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 10px 0;
+    }
+    .note { color: #666; font-size: 11px; line-height: 1.55; }
+    .grad {
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, hsl(0,78%,48%), hsl(60,78%,48%), hsl(120,78%,48%));
+      margin: 6px 0 2px;
+    }
+    .scale {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #777;
+    }
+  </style>
 </head>
 <body>
-  <div class="calculator">
-    <div class="display">
-      <div class="expression" id="expression"></div>
-      <div class="result" id="result">0</div>
-    </div>
-    <div class="buttons">
-      <button class="btn clear" onclick="clearAll()">C</button>
-      <button class="btn sign" onclick="toggleSign()">+/-</button>
-      <button class="btn percent" onclick="percent()">%</button>
-      <button class="btn operator" onclick="setOperator('/')">÷</button>
+  <h3>Salary Maps — France</h3>
 
-      <button class="btn" onclick="appendNumber('7')">7</button>
-      <button class="btn" onclick="appendNumber('8')">8</button>
-      <button class="btn" onclick="appendNumber('9')">9</button>
-      <button class="btn operator" onclick="setOperator('*')">×</button>
+  <div class="row"><span class="badge">Zoom ≤ 7</span><span class="label">Régions</span></div>
+  <div class="row"><span class="badge">Zoom 8–11</span><span class="label">Villes</span></div>
+  <div class="row"><span class="badge">Zoom ≥ 12</span><span class="label">Arrondissements (Paris)</span></div>
 
-      <button class="btn" onclick="appendNumber('4')">4</button>
-      <button class="btn" onclick="appendNumber('5')">5</button>
-      <button class="btn" onclick="appendNumber('6')">6</button>
-      <button class="btn operator" onclick="setOperator('-')">−</button>
+  <hr class="divider">
 
-      <button class="btn" onclick="appendNumber('1')">1</button>
-      <button class="btn" onclick="appendNumber('2')">2</button>
-      <button class="btn" onclick="appendNumber('3')">3</button>
-      <button class="btn operator" onclick="setOperator('+')">+</button>
-
-      <button class="btn zero" onclick="appendNumber('0')">0</button>
-      <button class="btn" onclick="appendDot()">.</button>
-      <button class="btn equals" onclick="calculate()">=</button>
-    </div>
+  <div style="font-weight:600;font-size:11px;margin-bottom:4px">Échelle des couleurs</div>
+  <div class="grad"></div>
+  <div class="scale">
+    <span>Bas</span><span>Moyen</span><span>Élevé</span>
   </div>
-  <script src="popup.js"></script>
+
+  <hr class="divider">
+
+  <p class="note">
+    Ouvrez <strong>Google Maps</strong>, naviguez vers la France et zoomez.
+    Les polygones colorés indiquent le salaire net mensuel moyen.
+    Survolez une zone pour voir le détail.
+  </p>
+  <p class="note" style="margin-top:6px">
+    Si la carte est déjà ouverte, rechargez l'onglet.
+  </p>
 </body>
 </html>
